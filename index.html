@@ -92,15 +92,22 @@ function build(){
   return `<div class="field${full?' full':''}"><label for="${id}">${l}${r?'<span class="req">*</span>':''}<small>${en}</small></label><div class="inp">${inner}<div class="err" id="e_${id}">กรุณากรอก${l}</div></div></div>`}).join('')}</div></fieldset>`).join('');
  $('vat').value='7';$('months').value='60';$('type').value='advance';
  document.querySelectorAll('#form input,#form select').forEach(e=>{
-  e.addEventListener('input',()=>{dirty=true;if(e.classList.contains('n'))e.value=e.value.replace(/[^\d.,]/g,'');refresh()});
+  e.addEventListener('input',()=>{dirty=true;if(e.classList.contains('n'))liveFormat(e);refresh()});
   e.addEventListener('change',()=>{dirty=true;touched.add(e.id);refresh()});
   e.addEventListener('blur',()=>{touched.add(e.id);if(e.classList.contains('n'))formatInput(e);refresh()});
-  e.addEventListener('focus',()=>{if(e.classList.contains('n'))e.value=e.value.replace(/,/g,'')});
  });
  refresh()}
 function raw(id){return $(id).value}function num(id){return Number(raw(id).replace(/,/g,''))||0}
 function money(x){return isFinite(x)?x.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'-'}
 function pct(x){return isFinite(x)?(x*100).toFixed(2)+'%':'-'}
+function liveFormat(e){const v=e.value,pos=e.selectionStart??v.length;
+ let n=v.slice(0,pos).replace(/[^\d.]/g,'').length,c=v.replace(/[^\d.]/g,'');const i=c.indexOf('.');
+ if(i>-1)c=c.slice(0,i+1)+c.slice(i+1).replace(/\./g,'');
+ let [a,b]=c.split('.');a=a.replace(/^0+(?=\d)/,'').replace(/\B(?=(\d{3})+(?!\d))/g,',');
+ const out=b===undefined?a:a+'.'+b.slice(0,2);
+ if(out===v)return;e.value=out;
+ let k=0,p=0;for(;p<out.length&&k<n;p++)if(out[p]!==',')k++;
+ try{e.setSelectionRange(p,p)}catch(_){}}
 function formatInput(e){let x=e.value.replace(/,/g,'');if(x!==''&&!isNaN(x))e.value=Number(x).toLocaleString('en-US',{maximumFractionDigits:2})}
 function addM(s,m){let d=new Date(s+'T00:00:00'),day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+m);d.setDate(Math.min(day,new Date(d.getFullYear(),d.getMonth()+1,0).getDate()));return d}
 function fd(d){return d.toLocaleDateString('en-GB')}
